@@ -45,6 +45,8 @@ void setup(void) {
   LOG_INFO("Pump turned off");
 
   // Valve
+  closeWaterValve();
+  LOG_INFO("Water Valve closed");
   closeValve();
   LOG_INFO("Valve closed");
 
@@ -700,6 +702,7 @@ static void profiling(void) {
     if (phaseProfiler.isFinished()) {
       setPumpOff();
       closeValve();
+      closeWaterValve();
       brewActive = false;
     } else if (currentPhase.getType() == PHASE_TYPE::PHASE_TYPE_PRESSURE) {
       float newBarValue = currentPhase.getTarget();
@@ -714,6 +717,7 @@ static void profiling(void) {
     }
   } else {
     setPumpOff();
+    closeWaterValve();
     closeValve();
   }
   // Keep that water at temp
@@ -727,6 +731,7 @@ static void manualFlowControl(void) {
     setPumpFlow(flow_reading, 0.f, currentState);
   } else {
     setPumpOff();
+    closeWaterValve();
     closeValve();
   }
   justDoCoffee(runningCfg, currentState, brewActive);
@@ -862,6 +867,7 @@ static inline void sysHealthCheck(float pressureThreshold) {
           break;
       }
     }
+    closeWaterValve();
     closeValve();
     systemHealthTimer = millis() + HEALTHCHECK_EVERY;
   }
@@ -938,6 +944,7 @@ static void fillBoilerUntilThreshod(unsigned long elapsedTime) {
   }
 
   if (isBoilerFull(elapsedTime)) {
+    closeWaterValve();
     closeValve();
     setPumpOff();
     systemState.startupInitFinished = true;

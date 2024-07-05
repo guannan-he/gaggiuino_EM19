@@ -1,9 +1,28 @@
 /* 09:32 15/03/2023 - change triggering comment */
+/* 2024/06/30 add support for single load cess, to enable it, define -DSINGLE_LOAD_CELL in extra_defined.ini */
 #include "scales.h"
 #include "pindef.h"
 #include "remote_scales.h"
-
+#if defined(SINGLE_LOAD_CELL)
+#include "HX711.h"
+#else
 #include <HX711_2.h>
+#endif
+
+#if defined(SINGLE_LOAD_CELL) //single load cell
+namespace {
+  class LoadCellSingleton {
+  public:
+    static HX711& getInstance() {
+      static HX711 instance(TIM3);
+      return instance;
+    }
+  private:
+    LoadCellSingleton() = default;
+    ~LoadCellSingleton() = default;
+  };
+}
+#else
 namespace {
   class LoadCellSingleton {
   public:
@@ -16,6 +35,7 @@ namespace {
     ~LoadCellSingleton() = default;
   };
 }
+#endif
 
 bool hwScalesPresent = false;
 
@@ -34,8 +54,13 @@ void scalesInit(float scalesF1, float scalesF2) {
 
 #ifndef DISABLE_HW_SCALES
   auto& loadCells = LoadCellSingleton::getInstance();
+  #if defined(SINGLE_LOAD_CELL)
+  loadCells.begin(HX711_dout_1, HX711_sck_1, 128U, scale_clk);
+  loadCells.set_scale(scalesF1);
+  #else
   loadCells.begin(HX711_dout_1, HX711_dout_2, HX711_sck_1, 128U, scale_clk);
   loadCells.set_scale(scalesF1, scalesF2);
+  #endif
   loadCells.power_up();
 
   if (loadCells.wait_ready_timeout(1000, 10)) {
@@ -69,9 +94,14 @@ Measurement scalesGetWeight(void) {
   if (hwScalesPresent) {
     auto& loadCells = LoadCellSingleton::getInstance();
     if (loadCells.wait_ready_timeout(150, 10)) {
+      #if defined(SINGLE_LOAD_CELL)
+      float value = loadCells.get_units();
+      currentWeight = Measurement{ .value=value, .millis=millis() };
+      #else
       float values[2];
       loadCells.get_units(values);
       currentWeight = Measurement{ .value=values[0] + values[1], .millis=millis() };
+      #endif
     }
   }
   else if (remoteScalesIsPresent()) {
@@ -89,9 +119,17 @@ bool scalesIsPresent(void) {
 }
 
 float scalesDripTrayWeight() {
+  #if defined(SINGLE_LOAD_CELL)
+  long value = 0;
+  if (hwScalesPresent) {
+    value = LoadCellSingleton::getInstance().read_average(4);
+  }
+  return ((float)value);
+  #else
   long value[2] = {};
   if (hwScalesPresent) {
     LoadCellSingleton::getInstance().read_average(value, 4);
   }
   return ((float)value[0] + (float)value[1]);
+  #endif
 }

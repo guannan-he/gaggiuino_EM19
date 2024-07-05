@@ -111,7 +111,13 @@ void steamCtrl(const eepromValues_t &runningCfg, SensorState &currentState) {
 
 /*Water mode and all that*/
 void hotWaterMode(const SensorState &currentState) {
+  #if defined(STANDALONE_WATER_VALVE)
   closeValve();
+  #else
+  closeValve();
+  #endif
+  lcdShowPopup("Hot Water Mode!");
+  openWaterValve();
   setPumpToRawValue(80);
   setBoilerOn();
   if (currentState.temperature < MAX_WATER_TEMP) setBoilerOn();

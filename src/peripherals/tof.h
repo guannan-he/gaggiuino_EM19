@@ -58,7 +58,7 @@ uint16_t TOF::readLvl() {
 
 uint16_t TOF::readRangeToPct(uint16_t val) {
   static const std::array<uint16_t, 10> water_lvl = { 100u, 90u, 80u, 70u, 60u, 50u, 40u, 30u, 20u, 10u };
-  static const std::array<uint16_t, 9> ranges = { 15u, 30u, 45u, 60u, 75u, 90u, 105u, 115u, 125u };
+  static const std::array<uint16_t, 9> ranges = { 20u, 44u, 68u, 92u, 116u, 140u, 164u, 188u, 212u };
   for (size_t i = 0; i < ranges.size(); i++) {
     if (val <= ranges[i]) {
       return water_lvl[i];

@@ -13,6 +13,9 @@ static inline void pinInit(void) {
     pinMode(valvePin, OUTPUT);
   #endif
   pinMode(relayPin, OUTPUT);
+  #if defined(waterValveRelayPin)
+  pinMode(waterValveRelayPin, OUTPUT);
+  #endif
   #ifdef steamValveRelayPin
   pinMode(steamValveRelayPin, OUTPUT);
   #endif
@@ -92,6 +95,19 @@ static inline void closeValve(void) {
     digitalWrite(valvePin, HIGH);
   #else
     digitalWrite(valvePin, LOW);
+  #endif
+}
+
+//water valve control(only effective when "DSTANDALONE_WATER_VALVE" was defined in "extra_defines.ini")
+static inline void openWaterValve(void) {
+  #ifdef waterValveRelayPin
+  digitalWrite(waterValveRelayPin, HIGH);  // waterValveRelayPin -> HIGH
+  #endif
+}
+
+static inline void closeWaterValve(void) {
+  #ifdef waterValveRelayPin
+  digitalWrite(waterValveRelayPin, LOW);  // waterValveRelayPin -> LOW
   #endif
 }
 

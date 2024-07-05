@@ -19,6 +19,9 @@
 #else
 #define waterPin      PA12
 #endif
+#if defined(STANDALONE_WATER_VALVE)
+#define waterValveRelayPin    PA8   // EM-19 has standalone hotwater valve
+#endif
 
 #ifdef PCBV2
 // PCB V2

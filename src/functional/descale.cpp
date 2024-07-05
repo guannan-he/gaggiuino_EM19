@@ -61,6 +61,7 @@ void deScale(eepromValues_t &runningCfg, const SensorState &currentState) {
       break;
     case DescalingState::FINISHED: // Scale successufuly fucked
       setPumpOff();
+      closeWaterValve();
       closeValve();
       setSteamValveRelayOff();
       currentState.brewSwitchState ? descalingState = DescalingState::FINISHED : descalingState = DescalingState::IDLE;
@@ -77,16 +78,23 @@ void deScale(eepromValues_t &runningCfg, const SensorState &currentState) {
 void solenoidBeat() {
   setPumpFullOn();
   closeValve();
+  closeWaterValve();
   delay(1000);
   watchdogReload();
   openValve();
   delay(200);
   closeValve();
+  openWaterValve();
+  delay(200);
+  closeWaterValve();
   delay(1000);
   watchdogReload();
   openValve();
   delay(200);
   closeValve();
+  openWaterValve();
+  delay(200);
+  closeWaterValve();
   delay(1000);
   watchdogReload();
   openValve();
@@ -122,6 +130,7 @@ void flushActivated(void) {
 void flushDeactivated(void) {
   #if defined SINGLE_BOARD || defined LEGO_VALVE_RELAY
       closeValve();
+      closeWaterValve();
   #endif
   setPumpOff();
 }
@@ -142,6 +151,7 @@ void flushPhases(void) {
         timer = millis();
       }
       closeValve();
+      closeWaterValve();
       setPumpOff();
     }
   } else {
