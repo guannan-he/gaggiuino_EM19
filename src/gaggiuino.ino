@@ -26,6 +26,7 @@ SystemState systemState;
 
 LED led;
 TOF tof;
+bool lastHotWaterMode = false;
 
 void setup(void) {
   LOG_INIT();
@@ -140,6 +141,7 @@ static void sensorsRead(void) {
 static void sensorReadSwitches(void) {
   currentState.brewSwitchState = brewState();
   currentState.steamSwitchState = steamState();
+  lastHotWaterMode = currentState.hotWaterSwitchState;
   currentState.hotWaterSwitchState = waterPinState() || (currentState.brewSwitchState && currentState.steamSwitchState); // use either an actual switch, or the GC/GCP switch combo
 }
 
@@ -292,7 +294,12 @@ static void modeSelect(void) {
     case OPERATION_MODES::OPMODE_everythingFlowProfiled:
     case OPERATION_MODES::OPMODE_pressureBasedPreinfusionAndFlowProfile:
       nonBrewModeActive = false;
-      if (currentState.hotWaterSwitchState) hotWaterMode(currentState);
+      if (currentState.hotWaterSwitchState){
+        if (!lastHotWaterMode){
+          lcdShowPopup("Hot Water Mode!");
+        }
+        hotWaterMode(currentState);
+      }
       else if (currentState.steamSwitchState) steamCtrl(runningCfg, currentState);
       else {
         profiling();
@@ -910,7 +917,7 @@ static void fillBoiler(void) {
     fillBoilerUntilThreshod(getTimeSinceInit());
   }
   else if (isSwitchOn()) {
-    lcdShowPopup("Brew Switch ON!");
+    lcdShowPopup("Brew or Water Switch ON!");
   }
 #else
   systemState.startupInitFinished = true;
@@ -934,7 +941,7 @@ static bool isBoilerFull(unsigned long elapsedTime) {
 
 // Checks if Brew switch is ON
 static bool isSwitchOn(void) {
-  return currentState.brewSwitchState && lcdCurrentPageId == NextionPage::Home;
+  return (currentState.brewSwitchState || currentState.hotWaterSwitchState) && lcdCurrentPageId == NextionPage::Home;
 }
 
 static void fillBoilerUntilThreshod(unsigned long elapsedTime) {

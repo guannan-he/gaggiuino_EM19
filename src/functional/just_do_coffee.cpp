@@ -116,7 +116,6 @@ void hotWaterMode(const SensorState &currentState) {
   #else
   closeValve();
   #endif
-  lcdShowPopup("Hot Water Mode!");
   openWaterValve();
   setPumpToRawValue(80);
   setBoilerOn();
